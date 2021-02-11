@@ -14,11 +14,11 @@ services:
   semantika:
     image: semantikadocker.vdu.lt/v2/morph:0.2
     # restart: unless-stopped
-    ports:
-     - "8090:8090" 
+    # ports:
+    #  - "8090:8090" 
 
   lex:
     image: semantikadocker.vdu.lt/lex:latest
     # restart: unless-stopped
-    ports:
-     - "8091:8080"
+    # ports:
+    #  - "8091:8080"
