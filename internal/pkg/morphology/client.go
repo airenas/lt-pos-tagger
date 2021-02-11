@@ -57,6 +57,7 @@ func (t *Client) Process(text string, data *api.SegmenterResult) (*api.TaggerRes
 	if err != nil {
 		return nil, errors.Wrap(err, "Can't marshal data")
 	}
+	//goapp.Log.Debugf("Input: %s", string(bytesData))
 	resp, err := t.httpclient.Post(t.url, "application/json", bytes.NewBuffer(bytesData))
 	if err != nil {
 		return nil, errors.Wrapf(err, "Can't invoke tagger %s", t.url)

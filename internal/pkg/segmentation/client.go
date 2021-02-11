@@ -10,6 +10,7 @@ import (
 	"github.com/airenas/go-app/pkg/goapp"
 	"github.com/airenas/lt-pos-tagger/internal/pkg/api"
 	"github.com/airenas/lt-pos-tagger/internal/pkg/morphology"
+	"github.com/airenas/lt-pos-tagger/internal/pkg/utils"
 	"github.com/pkg/errors"
 	"mvdan.cc/xurls/v2"
 )
@@ -68,16 +69,14 @@ func (t *Client) Process(data string) (*api.SegmenterResult, error) {
 var (
 	fixSymbolsMap map[rune]bool
 	urlRegexp     *regexp.Regexp
-	numberRegexp  *regexp.Regexp
 )
 
 func init() {
 	fixSymbolsMap = make(map[rune]bool)
-	for _, r := range "-‘\"–‑/:;`" {
+	for _, r := range "-‘\"–‑/:;`−" {
 		fixSymbolsMap[r] = true
 	}
 	urlRegexp = xurls.Relaxed()
-	numberRegexp = regexp.MustCompile("^[-+]?(([0-9]+([,\\.][0-9]+)*)|([0-9]+[\\.][0-9]+[eE][-+][0-9]+))$")
 }
 
 func fixSegments(seg [][]int, data string) [][]int {
@@ -90,7 +89,7 @@ func fixSegments(seg [][]int, data string) [][]int {
 		}
 		rw := sr[s[0] : s[0]+s[1]]
 		st := string(rw)
-		if isURL(st) || isNumber(st) {
+		if isURL(st) || utils.IsNumber(st) {
 			res = append(res, s)
 			continue
 		}
@@ -114,8 +113,4 @@ func fixSegments(seg [][]int, data string) [][]int {
 
 func isURL(s string) bool {
 	return urlRegexp.FindString(s) == s
-}
-
-func isNumber(s string) bool {
-	return numberRegexp.Match([]byte(s))
 }

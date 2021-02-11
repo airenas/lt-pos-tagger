@@ -9,6 +9,7 @@ import (
 
 	"github.com/airenas/go-app/pkg/goapp"
 	"github.com/airenas/lt-pos-tagger/internal/pkg/api"
+	"github.com/airenas/lt-pos-tagger/internal/pkg/utils"
 	"github.com/facebookgo/grace/gracehttp"
 	"github.com/labstack/echo-contrib/prometheus"
 	"github.com/labstack/echo/v4"
@@ -158,10 +159,11 @@ func MapRes(text string, tgr *api.TaggerResult, sgm *api.SegmenterResult) ([]Res
 		if ep < s[0] {
 			res = append(res, space(string(rns[ep:s[0]])))
 		}
-		if isSep(mi) {
-			res = append(res, sep(t, mi))
-		} else if isNum(mi) {
+
+		if isNum(t, mi) {
 			res = append(res, num(t, mi))
+		} else if isSep(mi) {
+			res = append(res, sep(t, mi))
 		} else {
 			res = append(res, word(t, tgr.Msd[i][0][0], mi))
 		}
@@ -202,7 +204,11 @@ func sentenceEnd() ResultWord {
 }
 
 func num(s string, mi string) ResultWord {
-	return ResultWord{Type: "NUMBER", String: s, Mi: mi}
+	tmi := mi
+	if mi == "Th" || mi == "X-" {
+		tmi = "M----d-" // negative number workaround
+	}
+	return ResultWord{Type: "NUMBER", String: s, Mi: tmi}
 }
 
 func word(s, mf, mi string) ResultWord {
@@ -213,6 +219,7 @@ func isSep(mi string) bool {
 	return strings.HasPrefix(mi, "T")
 }
 
-func isNum(mi string) bool {
-	return mi == "M----rn" || mi == "M----d-"
+func isNum(s string, mi string) bool {
+	return mi == "M----rn" || mi == "M----d-" ||
+		((mi == "Th" || mi == "X-") && len(s) > 1 && utils.IsNumber(s)) // negative number workaround
 }

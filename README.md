@@ -4,6 +4,7 @@
 
 
 Lithuanian Part of Speech Tagger - easy to use wrapper for lex and morph. The repository implements a service wrapper for *semantikadocker.vdu.lt/v2/morph* and *semantikadocker.vdu.lt/lex* services. These both services have quite complex API. This service makes the POS tag output simple to use and to understand. 
+
 Also it fixes some issues with *lex* segmentation.
 
 ## Deploy
@@ -64,7 +65,7 @@ The output is expected to be the list of tagged words:
 ]
 ```
 
-Info about the values of `mi` property can be found here [http://corpus.vdu.lt/en/morph](http://corpus.vdu.lt/en/morph). The set of possible values for the `type` field is `SPACE, SEPARATOR, SENTENCE_END, NUMBER, WORD`
+Info about the values of `mi` property can be found here [http://corpus.vdu.lt/en/morph](http://corpus.vdu.lt/en/morph). The set of possible values for the `type` field is `SPACE, SEPARATOR, SENTENCE_END, NUMBER, WORD`.
 
 ---
 ### Author

@@ -199,6 +199,50 @@ func TestMapNumber(t *testing.T) {
 	assert.Equal(t, "M----d-", r[0].Mi)
 }
 
+func TestMap_NegativeNumber(t *testing.T) {
+	sr := &api.SegmenterResult{Seg: [][]int{{0, 5}}, S: [][]int{{0, 5}}}
+	tr := &api.TaggerResult{Msd: [][][]string{{{"-1234", "Th"}}}}
+	r, err := MapRes("-1234", tr, sr)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(r))
+	assert.Equal(t, "NUMBER", r[0].Type)
+	assert.Equal(t, "-1234", r[0].String)
+	assert.Equal(t, "M----d-", r[0].Mi)
+}
+
+func TestMap_ScientificNumber(t *testing.T) {
+	sr := &api.SegmenterResult{Seg: [][]int{{0, 5}}, S: [][]int{{0, 5}}}
+	tr := &api.TaggerResult{Msd: [][][]string{{{"1e+10", "X-"}}}}
+	r, err := MapRes("1e+10", tr, sr)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(r))
+	assert.Equal(t, "NUMBER", r[0].Type)
+	assert.Equal(t, "1e+10", r[0].String)
+	assert.Equal(t, "M----d-", r[0].Mi)
+}
+
+func TestMap_WordNotNum(t *testing.T) {
+	sr := &api.SegmenterResult{Seg: [][]int{{0, 5}}, S: [][]int{{0, 5}}}
+	tr := &api.TaggerResult{Msd: [][][]string{{{"1e+1a", "X-"}}}}
+	r, err := MapRes("1e+1a", tr, sr)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(r))
+	assert.Equal(t, "WORD", r[0].Type)
+	assert.Equal(t, "1e+1a", r[0].String)
+	assert.Equal(t, "X-", r[0].Mi)
+}
+
+func TestMap_SeparatorOneSymbol(t *testing.T) {
+	sr := &api.SegmenterResult{Seg: [][]int{{0, 1}}, S: [][]int{{0, 1}}}
+	tr := &api.TaggerResult{Msd: [][][]string{{{"1", "Th"}}}}
+	r, err := MapRes("1", tr, sr)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(r))
+	assert.Equal(t, "SEPARATOR", r[0].Type)
+	assert.Equal(t, "1", r[0].String)
+	assert.Equal(t, "Th", r[0].Mi)
+}
+
 func TestMapSentence(t *testing.T) {
 	sr := &api.SegmenterResult{Seg: [][]int{{0, 4}}, S: [][]int{{0, 4}}}
 	tr := &api.TaggerResult{Msd: [][][]string{{{"1234", "M----d-"}}}}
