@@ -1,0 +1,24 @@
+version: '3.4'
+
+services:
+  tagger:
+    image: airenas/tagger:${TAGGER_VERSION}
+    environment:
+      - MORPHOLOGY_URL=http://semantika:8090/morphology
+      - SEGMENTATION_URL=http://lex:8080/
+    # restart: unless-stopped
+    ports:
+      - "${PORT}:8000" 
+  
+
+  semantika:
+    image: semantikadocker.vdu.lt/v2/morph:0.2
+    # restart: unless-stopped
+    ports:
+     - "8090:8090" 
+
+  lex:
+    image: semantikadocker.vdu.lt/lex:latest
+    # restart: unless-stopped
+    ports:
+     - "8091:8080"

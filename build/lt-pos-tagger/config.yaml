@@ -1,0 +1,8 @@
+port: 8000
+# logger:
+#   level: DEBUG
+# morphology:
+#   url: http://localhost:8090/morphology
+
+# segmentation:
+#   url: http://localhost:8091/

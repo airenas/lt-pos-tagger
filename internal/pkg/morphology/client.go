@@ -32,7 +32,7 @@ type Client struct {
 func NewClient(url string) (*Client, error) {
 	res := Client{}
 	if url == "" {
-		return nil, errors.New("No tagger URL")
+		return nil, errors.New("No morphology URL")
 	}
 	res.url = url
 	res.httpclient = http.DefaultClient

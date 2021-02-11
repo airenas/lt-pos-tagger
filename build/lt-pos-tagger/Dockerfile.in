@@ -1,0 +1,10 @@
+FROM iron/base
+LABEL Description="This image is used to host the LT POS tagger service" \ 
+      Maintainer="airenass@gmail.com" Vendor="Airenas Vaiciunas" Version="${VERSION}" 
+
+WORKDIR /app
+
+COPY data/tagger /app/
+COPY config.yaml /app/
+
+ENTRYPOINT ["./tagger"]
