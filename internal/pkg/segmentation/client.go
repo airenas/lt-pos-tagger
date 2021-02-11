@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"regexp"
 	"sync"
 
-	"github.com/airenas/go-app/pkg/goapp"
 	"github.com/airenas/lt-pos-tagger/internal/pkg/api"
 	"github.com/airenas/lt-pos-tagger/internal/pkg/morphology"
 	"github.com/pkg/errors"
@@ -42,7 +42,6 @@ func (t *Client) Process(data string) (*api.SegmenterResult, error) {
 	t.lexLock.Lock()
 	defer t.lexLock.Unlock()
 
-	goapp.Log.Debug("Process lex")
 	bytesData := []byte(data)
 	resp, err := t.httpclient.Post(t.url, "application/json", bytes.NewBuffer(bytesData))
 	if err != nil {
@@ -64,13 +63,19 @@ func (t *Client) Process(data string) (*api.SegmenterResult, error) {
 	return &result, nil
 }
 
-var fixSymbolsMap map[rune]bool
+var (
+	fixSymbolsMap map[rune]bool
+	urlRegexp     *regexp.Regexp
+	numberRegexp  *regexp.Regexp
+)
 
 func init() {
 	fixSymbolsMap = make(map[rune]bool)
-	for _, r := range "-‘\"–‑/" {
+	for _, r := range "-‘\"–‑/:;" {
 		fixSymbolsMap[r] = true
 	}
+	urlRegexp = xurls.Relaxed()
+	numberRegexp = regexp.MustCompile("^[-+]?(([0-9]+([,\\.][0-9]+)?)|([0-9]+[\\.][0-9]+[eE][+][0-9]+))$")
 }
 
 func fixSegments(seg [][]int, data string) [][]int {
@@ -82,7 +87,8 @@ func fixSegments(seg [][]int, data string) [][]int {
 			continue
 		}
 		rw := sr[s[0] : s[0]+s[1]]
-		if isURL(string(rw)) {
+		st := string(rw)
+		if isURL(st) || isNumber(st) {
 			res = append(res, s)
 			continue
 		}
@@ -105,6 +111,9 @@ func fixSegments(seg [][]int, data string) [][]int {
 }
 
 func isURL(s string) bool {
-	rxRelaxed := xurls.Relaxed()
-	return rxRelaxed.FindString(s) == s
+	return urlRegexp.FindString(s) == s
+}
+
+func isNumber(s string) bool {
+	return numberRegexp.Match([]byte(s))
 }
