@@ -16,7 +16,11 @@ build: $(dist_dir)/$(executable_name)
 ########### DOCKER ##################################################################
 tag=$(service):$(version).$(commit_count)
 
-Dockerfile: Dockerfile.in Makefile
+up-version:
+	rm -f $(dist_dir)/.version
+$(dist_dir)/.version:
+	echo $(version).$(commit_count) > $@
+Dockerfile: Dockerfile.in up-version $(dist_dir)/.version
 	cat $< | VERSION=$(version).$(commit_count) envsubst > $@
 
 dbuild: $(dist_dir)/$(executable_name) Dockerfile
@@ -29,4 +33,4 @@ clean:
 	rm -rf $(dist_dir)
 
 .PHONY:
-	clean build dbuild dpush
+	clean build dbuild dpush up-version
