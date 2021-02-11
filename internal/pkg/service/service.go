@@ -36,14 +36,6 @@ type (
 	}
 )
 
-type taggerHandler struct {
-	data *Data
-}
-
-func (t *taggerHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
-}
-
 //StartWebServer starts the HTTP service and listens for the requests
 func StartWebServer(data *Data) error {
 	goapp.Log.Infof("Starting HTTP service at %d", data.Port)
