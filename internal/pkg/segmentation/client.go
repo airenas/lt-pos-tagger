@@ -75,7 +75,7 @@ func init() {
 		fixSymbolsMap[r] = true
 	}
 	urlRegexp = xurls.Relaxed()
-	numberRegexp = regexp.MustCompile("^[-+]?(([0-9]+([,\\.][0-9]+)?)|([0-9]+[\\.][0-9]+[eE][+][0-9]+))$")
+	numberRegexp = regexp.MustCompile("^[-+]?(([0-9]+([,\\.][0-9]+)*)|([0-9]+[\\.][0-9]+[eE][-+][0-9]+))$")
 }
 
 func fixSegments(seg [][]int, data string) [][]int {

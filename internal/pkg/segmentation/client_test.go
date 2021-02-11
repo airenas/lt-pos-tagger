@@ -102,3 +102,27 @@ func TestFixSegments(t *testing.T) {
 		assert.Equal(t, tc.e, fixSegments(tc.v, tc.s), "Fail %d - %s", i, tc.i)
 	}
 }
+
+func TestIsNumber(t *testing.T) {
+	tests := []struct {
+		v string
+		e bool
+		i string
+	}{
+		{v: "-10", e: true},
+		{v: "-10.000", e: true},
+		{v: "-10.999.000", e: true},
+		{v: "10", e: true},
+		{v: "5.12321e+10", e: true},
+		{v: "-5.12321e-10", e: true},
+		{v: "+5.12321e-10", e: true},
+		{v: "aaa5.12321e", e: false},
+		{v: "ooo", e: false},
+		{v: ",", e: false},
+		{v: ".", e: false},
+	}
+
+	for i, tc := range tests {
+		assert.Equal(t, tc.e, isNumber(tc.v), "Fail %d - %s", i, tc.v)
+	}
+}
