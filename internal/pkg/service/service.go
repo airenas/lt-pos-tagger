@@ -15,7 +15,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 type (
@@ -65,7 +64,7 @@ func StartWebServer(data *Data) error {
 func initRoutes(data *Data) *echo.Echo {
 	e := echo.New()
 	e.Use(middleware.Logger())
-	p := prometheus.NewPrometheus("acronyms", nil)
+	p := prometheus.NewPrometheus("tag", nil)
 	p.Use(e)
 
 	e.POST("/tag", handleText(data))
@@ -115,14 +114,14 @@ func handleText(data *Data) func(echo.Context) error {
 			goapp.Log.Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, "Can't tag")
 		}
-		logrus.Debugf("Tagger: %v", tgr)
+		goapp.Log.Debugf("Tagger: %v", tgr)
 
 		res, err := MapRes(text, tgr, sgm)
 		if err != nil {
 			goapp.Log.Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, "Can't map")
 		}
-		logrus.Debugf("Res: %v", res)
+		goapp.Log.Debugf("Res: %v", res)
 
 		return c.JSON(http.StatusOK, res)
 	}

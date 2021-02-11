@@ -7,9 +7,9 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/airenas/go-app/pkg/goapp"
 	"github.com/airenas/lt-pos-tagger/internal/pkg/api"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 type requestAnotations struct {
@@ -42,7 +42,7 @@ func NewClient(url string) (*Client, error) {
 
 //Process invokes ws
 func (t *Client) Process(text string, data *api.SegmenterResult) (*api.TaggerResult, error) {
-	logrus.Debug("Process tagger")
+	goapp.Log.Debug("Process tagger")
 	if text == "" {
 		return nil, errors.Errorf("No text")
 	}

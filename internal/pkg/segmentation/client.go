@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/airenas/go-app/pkg/goapp"
 	"github.com/airenas/lt-pos-tagger/internal/pkg/api"
 	"github.com/airenas/lt-pos-tagger/internal/pkg/morphology"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"mvdan.cc/xurls/v2"
 )
 
@@ -42,7 +42,7 @@ func (t *Client) Process(data string) (*api.SegmenterResult, error) {
 	t.lexLock.Lock()
 	defer t.lexLock.Unlock()
 
-	logrus.Debug("Process lex")
+	goapp.Log.Debug("Process lex")
 	bytesData := []byte(data)
 	resp, err := t.httpclient.Post(t.url, "application/json", bytes.NewBuffer(bytesData))
 	if err != nil {
