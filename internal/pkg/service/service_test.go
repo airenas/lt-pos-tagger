@@ -173,48 +173,21 @@ func TestMapSpaceDash(t *testing.T) {
 	tr := &api.TaggerResult{Msd: [][][]string{{{".", "T."}}, {{".", "T."}}}}
 	r, err := MapRes(". - .", tr, sr)
 	assert.Nil(t, err)
-	assert.Equal(t, 6, len(r))
+	assert.Equal(t, 4, len(r))
 	assert.Equal(t, "SPACE", r[1].Type)
-	assert.Equal(t, " ", r[1].String)
-	assert.Equal(t, "SEPARATOR", r[2].Type)
-	assert.Equal(t, "-", r[2].String)
-	assert.Equal(t, "SPACE", r[3].Type)
-	assert.Equal(t, " ", r[3].String)
+	assert.Equal(t, " - ", r[1].String)
 }
 
-func TestSpace(t *testing.T) {
-	sr := &api.SegmenterResult{Seg: [][]int{{0, 1}, {3, 1}}, S: [][]int{{0, 4}}}
-	tr := &api.TaggerResult{Msd: [][][]string{{{".", "T."}}, {{".", "T."}}}}
-	r, err := MapRes(".- .", tr, sr)
+func TestMapDash(t *testing.T) {
+	sr := &api.SegmenterResult{Seg: [][]int{{0, 1}, {1, 1}}, S: [][]int{{0, 2}}}
+	tr := &api.TaggerResult{Msd: [][][]string{{{"a", "X"}}, {{"-", "T-"}}}}
+	r, err := MapRes("a-", tr, sr)
 	assert.Nil(t, err)
-	assert.Equal(t, 5, len(r))
-	assert.Equal(t, "SEPARATOR", r[1].Type)
-	assert.Equal(t, "-", r[1].String)
-	assert.Equal(t, "SPACE", r[2].Type)
-	assert.Equal(t, " ", r[2].String)
-}
-
-func TestMapSpaceDash3(t *testing.T) {
-	sr := &api.SegmenterResult{Seg: [][]int{{0, 1}, {3, 1}}, S: [][]int{{0, 4}}}
-	tr := &api.TaggerResult{Msd: [][][]string{{{".", "T."}}, {{".", "T."}}}}
-	r, err := MapRes(". -.", tr, sr)
-	assert.Nil(t, err)
-	assert.Equal(t, 5, len(r))
-	assert.Equal(t, "SPACE", r[1].Type)
-	assert.Equal(t, " ", r[1].String)
-	assert.Equal(t, "SEPARATOR", r[2].Type)
-	assert.Equal(t, "-", r[2].String)
-}
-
-func TestMapSpaceDash4(t *testing.T) {
-	sr := &api.SegmenterResult{Seg: [][]int{{0, 1}, {2, 1}}, S: [][]int{{0, 3}}}
-	tr := &api.TaggerResult{Msd: [][][]string{{{".", "T."}}, {{".", "T."}}}}
-	r, err := MapRes(".-.", tr, sr)
-	assert.Nil(t, err)
-	assert.Equal(t, 5, len(r))
+	assert.Equal(t, 3, len(r))
 	assert.Equal(t, "SEPARATOR", r[1].Type)
 	assert.Equal(t, "-", r[1].String)
 }
+
 func TestMapNumber(t *testing.T) {
 	sr := &api.SegmenterResult{Seg: [][]int{{0, 4}}, S: [][]int{{0, 4}}}
 	tr := &api.TaggerResult{Msd: [][][]string{{{"1234", "M----d-"}}}}

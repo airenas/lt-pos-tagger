@@ -157,7 +157,7 @@ func MapRes(text string, tgr *api.TaggerResult, sgm *api.SegmenterResult) ([]Res
 		}
 		mi := tgr.Msd[i][0][1]
 		if ep < s[0] {
-			res = append(res, space(string(rns[ep:s[0]]))...)
+			res = append(res, space(string(rns[ep:s[0]])))
 		}
 		if isSep(mi) {
 			res = append(res, sep(t, mi))
@@ -190,23 +190,8 @@ func getSentence(s [][]int, i int) []int {
 	return res
 }
 
-func space(s string) []ResultWord {
-	strs := strings.Split(s, "-")
-	res := make([]ResultWord, 0)
-	skip := false
-	for _, sp := range strs {
-		if sp == "" {
-			res = append(res, ResultWord{Type: "SEPARATOR", String: "-"})
-			skip = true
-		} else {
-			if len(res) > 0 && !skip {
-				res = append(res, ResultWord{Type: "SEPARATOR", String: "-"})
-			}
-			res = append(res, ResultWord{Type: "SPACE", String: sp})
-			skip = false
-		}
-	}
-	return res
+func space(s string) ResultWord {
+	return ResultWord{Type: "SPACE", String: s}
 }
 
 func sep(s string, mi string) ResultWord {
