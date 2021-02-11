@@ -1,7 +1,6 @@
 package service
 
 import (
-	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -55,11 +54,30 @@ func TestProvides(t *testing.T) {
 	assert.Equal(t, http.StatusOK, tResp.Code)
 	assert.Equal(t, `[{"type":"WORD","string":"mama","mi":"mama","lemma":"xxxx"},{"type":"SPACE","string":" "},{"type":"WORD","string":"o","mi":".","lemma":"xxx"},{"type":"SENTENCE_END"}]`,
 		strings.TrimSpace(tResp.Body.String()))
+
+}
+
+func TestFails_Empty(t *testing.T) {
+	initTest(t)
+	req := httptest.NewRequest("POST", "/tag", strings.NewReader(""))
+
+	tEcho.ServeHTTP(tResp, req)
+
+	assert.Equal(t, http.StatusBadRequest, tResp.Code)
+}
+
+func TestFails_Map(t *testing.T) {
+	initTest(t)
+	req := httptest.NewRequest("POST", "/tag", strings.NewReader("mama"))
+
+	tEcho.ServeHTTP(tResp, req)
+
+	assert.Equal(t, http.StatusInternalServerError, tResp.Code)
 }
 
 func TestFailsMorph(t *testing.T) {
 	initTest(t)
-	req := httptest.NewRequest("POST", "/tag", newTestInput("mama o"))
+	req := httptest.NewRequest("POST", "/tag", strings.NewReader("mama o"))
 
 	tData.Tagger = &testTagger{err: errors.New("err")}
 	tEcho.ServeHTTP(tResp, req)
@@ -69,7 +87,7 @@ func TestFailsMorph(t *testing.T) {
 
 func TestFailsLex(t *testing.T) {
 	initTest(t)
-	req := httptest.NewRequest("POST", "/tag", newTestInput("mama o"))
+	req := httptest.NewRequest("POST", "/tag", strings.NewReader("mama o"))
 
 	tData.Segmenter = &testLex{err: errors.New("err")}
 	tEcho.ServeHTTP(tResp, req)
@@ -283,12 +301,6 @@ func TestMapSentence_ErrorNoSentence(t *testing.T) {
 	tr := &api.TaggerResult{Msd: [][][]string{{{"1234", "M----d-"}}, {{"1", "M----d-"}}}}
 	_, err := MapRes("1234 1", tr, sr)
 	assert.NotNil(t, err)
-}
-
-func newTestInput(text string) *bytes.Buffer {
-	result := new(bytes.Buffer)
-	result.WriteString(text)
-	return result
 }
 
 type testTagger struct {

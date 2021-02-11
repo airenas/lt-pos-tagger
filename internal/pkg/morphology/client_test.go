@@ -1,6 +1,7 @@
 package morphology
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -21,6 +22,18 @@ func initServer(t *testing.T, urlStr, resp string, code int) (*Client, *httptest
 	api.httpclient = server.Client()
 	api.url = server.URL
 	return &api, server
+}
+
+func TestNew(t *testing.T) {
+	c, err := NewClient("url.url")
+	assert.Nil(t, err)
+	assert.NotNil(t, c)
+}
+
+func TestNew_Fail(t *testing.T) {
+	c, err := NewClient("")
+	assert.NotNil(t, err)
+	assert.Nil(t, c)
 }
 
 func TestProcess(t *testing.T) {
@@ -66,4 +79,35 @@ func TestProcess_WrongLex_Fails(t *testing.T) {
 	r, err = cl.Process("olia", &api.SegmenterResult{})
 	assert.NotNil(t, err)
 	assert.Nil(t, r)
+}
+
+func TestValidateResp(t *testing.T) {
+	tResp := httptest.NewRecorder()
+	tResp.Body = bytes.NewBuffer([]byte("olia"))
+	tResp.Code = 200
+	err := ValidateResponse(tResp.Result())
+	assert.Nil(t, err)
+}
+
+func TestValidateResp_Fail(t *testing.T) {
+	tResp := httptest.NewRecorder()
+	tResp.Body = bytes.NewBuffer([]byte("err olia"))
+	tResp.Code = 400
+	err := ValidateResponse(tResp.Result())
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "err olia")
+}
+
+func TestValidateResp_FailLong(t *testing.T) {
+	tResp := httptest.NewRecorder()
+	ls := ""
+	for len(ls) < 100 {
+		ls = ls + "abc"
+	}
+	tResp.Body = bytes.NewBuffer([]byte(ls))
+	tResp.Code = 400
+	err := ValidateResponse(tResp.Result())
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "abc")
+	assert.Contains(t, err.Error(), "...")
 }
