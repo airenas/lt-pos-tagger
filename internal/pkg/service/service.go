@@ -99,7 +99,6 @@ func handleText(data *Data) func(echo.Context) error {
 			goapp.Log.Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, "Can't segment")
 		}
-		goapp.Log.Debugf("Lex: %v", sgm)
 
 		tgr, err := data.Tagger.Process(text, sgm)
 		if err != nil {

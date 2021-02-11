@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"sync"
 
+	"github.com/airenas/go-app/pkg/goapp"
 	"github.com/airenas/lt-pos-tagger/internal/pkg/api"
 	"github.com/airenas/lt-pos-tagger/internal/pkg/morphology"
 	"github.com/pkg/errors"
@@ -54,13 +55,14 @@ func (t *Client) Process(data string) (*api.SegmenterResult, error) {
 	if resp.Body != nil {
 		defer resp.Body.Close()
 	}
-	var result api.SegmenterResult
-	err = json.NewDecoder(resp.Body).Decode(&result)
+	var res api.SegmenterResult
+	err = json.NewDecoder(resp.Body).Decode(&res)
 	if err != nil {
 		return nil, errors.Wrap(err, "Can't decode response")
 	}
-	result.Seg = fixSegments(result.Seg, data)
-	return &result, nil
+	goapp.Log.Debugf("Lex: %v", res.Seg)
+	res.Seg = fixSegments(res.Seg, data)
+	return &res, nil
 }
 
 var (
@@ -71,7 +73,7 @@ var (
 
 func init() {
 	fixSymbolsMap = make(map[rune]bool)
-	for _, r := range "-‘\"–‑/:;" {
+	for _, r := range "-‘\"–‑/:;`" {
 		fixSymbolsMap[r] = true
 	}
 	urlRegexp = xurls.Relaxed()
