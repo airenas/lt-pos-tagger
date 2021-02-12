@@ -16,7 +16,7 @@ Deployment sample is prepared with *docker*: [example/docker-compose.yml](exampl
    make up
 ```
 
-What's it. You can start using the service:
+That's it. You can start using the service:
 ```bash
    curl -X POST -http://localhost:8092/tag -d 'Mama su kasa kasa smėlį.'
 ```
