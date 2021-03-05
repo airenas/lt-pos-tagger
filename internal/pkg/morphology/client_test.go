@@ -18,7 +18,7 @@ func initServer(t *testing.T, urlStr, resp string, code int) (*Client, *httptest
 		rw.Write([]byte(resp))
 	}))
 	// Use Client & URL from our local test server
-	api := Client{}
+	api := Client{rateLimit: make(chan bool, 10)}
 	api.httpclient = server.Client()
 	api.url = server.URL
 	return &api, server
