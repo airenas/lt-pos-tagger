@@ -26,6 +26,7 @@ type request struct {
 type Client struct {
 	httpclient *http.Client
 	url        string
+	rateLimit  chan bool
 }
 
 //NewClient creates a tagger client
@@ -36,12 +37,15 @@ func NewClient(url string) (*Client, error) {
 	}
 	res.url = url
 	res.httpclient = http.DefaultClient
-
+	res.rateLimit = make(chan bool, 10)
 	return &res, nil
 }
 
 //Process invokes ws
 func (t *Client) Process(text string, data *api.SegmenterResult) (*api.TaggerResult, error) {
+	t.rateLimit <- true
+	defer func() { <-t.rateLimit }()
+
 	goapp.Log.Debug("Process tagger")
 	if text == "" {
 		return nil, errors.Errorf("No text")
