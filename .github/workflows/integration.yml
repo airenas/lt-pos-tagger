@@ -1,0 +1,17 @@
+name: Integration Tests
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Init services
+        run: cd examples && make up
+      - name: Wait service up
+        run: sleep 10
+      - name: Run integration tests
+        run: cd tests && make all
