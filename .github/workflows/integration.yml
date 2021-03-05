@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Init services
-        run: cd examples && make up
+        run: cd example && make up
       - name: Wait service up
         run: sleep 10
       - name: Run integration tests
