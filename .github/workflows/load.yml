@@ -1,4 +1,4 @@
-name: Integration Tests
+name: Load Tests
 on:
   push:
     branches: [ main ]
@@ -13,5 +13,5 @@ jobs:
         run: cd example && make up
       - name: Wait service up
         run: sleep 20
-      - name: Run integration tests
+      - name: Run load tests
         run: cd tests && make all vu=5
