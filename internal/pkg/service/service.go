@@ -13,7 +13,6 @@ import (
 	"github.com/facebookgo/grace/gracehttp"
 	"github.com/labstack/echo-contrib/prometheus"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 
 	"github.com/pkg/errors"
 )
@@ -56,7 +55,6 @@ func StartWebServer(data *Data) error {
 
 func initRoutes(data *Data) *echo.Echo {
 	e := echo.New()
-	e.Use(middleware.Logger())
 	p := prometheus.NewPrometheus("tag", nil)
 	p.Use(e)
 
