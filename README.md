@@ -18,7 +18,7 @@ Deployment sample is prepared with *docker*: [example/docker-compose.yml](exampl
 
 That's it. You can start using the service:
 ```bash
-   curl -X POST -http://localhost:8092/tag -d 'Mama su kasa kasa smėlį.'
+   curl -X POST http://localhost:8092/tag -d 'Mama su kasa kasa smėlį.'
 ```
 
 The output is expected to be the list of tagged words:
