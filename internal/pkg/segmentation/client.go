@@ -73,7 +73,7 @@ var (
 
 func init() {
 	fixSymbolsMap = make(map[rune]bool)
-	for _, r := range "-‘\"–‑/:;`−" {
+	for _, r := range "-‘\"–‑/:;`−≤" {
 		fixSymbolsMap[r] = true
 	}
 	urlRegexp = xurls.Relaxed()
