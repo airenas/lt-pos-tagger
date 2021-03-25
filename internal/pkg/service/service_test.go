@@ -320,6 +320,12 @@ func TestMapSentence_ErrorNoSentence(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+func TestTryTakeText(t *testing.T) {
+	assert.Equal(t, "", tryTakeText([]rune(""), 10))
+	assert.Equal(t, "aaaaaaaadada", tryTakeText([]rune("aaaaaaaadada"), 0))
+	assert.Equal(t, "123456789aaaaaaaadada", tryTakeText([]rune("0123456789aaaaaaaadada"), 11))
+}
+
 type testTagger struct {
 	res *api.TaggerResult
 	err error

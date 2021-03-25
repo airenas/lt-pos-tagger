@@ -132,26 +132,26 @@ func MapRes(text string, tgr *api.TaggerResult, sgm *api.SegmenterResult) ([]Res
 	sent := getSentence(sgm.S, si)
 	for i, s := range sgm.Seg {
 		if len(s) < 2 {
-			return nil, errors.Errorf("Wrong seg %v", s)
+			return nil, errors.Errorf("Wrong seg (< 2) %v", s)
 		}
 		if s[0] < 0 || s[1] < 1 {
 			return nil, errors.Errorf("Wrong seg %v", s)
 		}
 		if s[0]+s[1] > len(rns) {
-			return nil, errors.Errorf("Wrong seg %v", s)
+			return nil, errors.Errorf("Wrong seg (len > len(s)) %v, %d. %s", s, len(rns), tryTakeText(rns, s[0]))
 		}
 		if sent == nil {
 			return nil, errors.Errorf("No sentence for %v", s)
 		}
 		t := string(rns[s[0] : s[0]+s[1]])
 		if len(tgr.Msd) <= i {
-			return nil, errors.Errorf("No msd at %d", i)
+			return nil, errors.Errorf("No msd at %d. %s", i, tryTakeText(rns, s[0]))
 		}
 		if len(tgr.Msd[i]) < 1 {
-			return nil, errors.Errorf("No msd at %d", i)
+			return nil, errors.Errorf("Wrong msd at (len < 1) %d. %s", i, tryTakeText(rns, s[0]))
 		}
 		if len(tgr.Msd[i][0]) < 2 {
-			return nil, errors.Errorf("No msd at %d", i)
+			return nil, errors.Errorf("Wrong msd at (len[0] < 2) %d. %s", i, tryTakeText(rns, s[0]))
 		}
 		mi := tgr.Msd[i][0][1]
 		if ep < s[0] {
@@ -187,6 +187,24 @@ func getSentence(s [][]int, i int) []int {
 		return nil
 	}
 	return res
+}
+
+func tryTakeText(rns []rune, from int) string {
+	return string(rns[max(from-10, 0):min(from+100, len(rns))])
+}
+
+func min(i1, i2 int) int {
+	if i1 > i2 {
+		return i2
+	}
+	return i1
+}
+
+func max(i1, i2 int) int {
+	if i1 < i2 {
+		return i2
+	}
+	return i1
 }
 
 func space(s string) ResultWord {
