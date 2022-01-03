@@ -44,10 +44,11 @@ func NewClient(url string) (*Client, error) {
 
 //Process invokes ws
 func (t *Client) Process(text string, data *api.SegmenterResult) (*api.TaggerResult, error) {
+	// allow only 10 paraller requests to morph as it fails to process more
 	select {
 	case t.rateLimit <- struct{}{}:
 	case <-time.After(20 * time.Second):
-		return nil, errors.Errorf("morphology too busy. timeouted")
+		return nil, errors.Errorf("morphology too busy, timeouted")
 	}
 	defer func() { <-t.rateLimit }()
 

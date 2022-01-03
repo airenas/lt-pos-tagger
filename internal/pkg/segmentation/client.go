@@ -2,10 +2,11 @@ package segmentation
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"regexp"
-	"sync"
+	"time"
 
 	"github.com/airenas/go-app/pkg/goapp"
 	"github.com/airenas/lt-pos-tagger/internal/pkg/api"
@@ -19,7 +20,7 @@ import (
 type Client struct {
 	httpclient *http.Client
 	url        string
-	lexLock    *sync.Mutex
+	rateLimit  chan struct{}
 }
 
 //NewClient creates a tagger client
@@ -30,7 +31,7 @@ func NewClient(url string) (*Client, error) {
 	}
 	res.url = url
 	res.httpclient = http.DefaultClient
-	res.lexLock = &sync.Mutex{}
+	res.rateLimit = make(chan struct{}, 1)
 
 	return &res, nil
 }
@@ -41,17 +42,31 @@ func (t *Client) Process(data string) (*api.SegmenterResult, error) {
 		return &api.SegmenterResult{Seg: [][]int{{0, 1}}, P: [][]int{{0, 1}}, S: [][]int{{0, 1}}}, nil
 	}
 
-	t.lexLock.Lock()
-	defer t.lexLock.Unlock()
+	// lex fails if several requests go simultaneously
+	select {
+	case t.rateLimit <- struct{}{}:
+	case <-time.After(20 * time.Second):
+		return nil, errors.Errorf("lex too busy, timeouted")
+	}
+	defer func() { <-t.rateLimit }()
 
+	ctx, cancelF := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancelF()
 	bytesData := []byte(data)
-	resp, err := t.httpclient.Post(t.url, "application/json", bytes.NewBuffer(bytesData))
+	req, err := http.NewRequest(http.MethodPost, t.url, bytes.NewBuffer(bytesData))
 	if err != nil {
-		return nil, errors.Wrapf(err, "Can't invoke lex %s", t.url)
+		return nil, errors.Wrapf(err, "can't prepare request to '%s'", t.url)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req = req.WithContext(ctx)
+
+	resp, err := t.httpclient.Do(req)
+	if err != nil {
+		return nil, errors.Wrapf(err, "can't invoke lex %s", t.url)
 	}
 	err = morphology.ValidateResponse(resp)
 	if err != nil {
-		return nil, errors.Wrap(err, "Can't invoke lex")
+		return nil, errors.Wrap(err, "can't invoke lex")
 	}
 	if resp.Body != nil {
 		defer resp.Body.Close()
@@ -59,7 +74,7 @@ func (t *Client) Process(data string) (*api.SegmenterResult, error) {
 	var res api.SegmenterResult
 	err = json.NewDecoder(resp.Body).Decode(&res)
 	if err != nil {
-		return nil, errors.Wrap(err, "Can't decode response")
+		return nil, errors.Wrap(err, "can't decode response")
 	}
 	goapp.Log.Debugf("Lex: %v", res.Seg)
 	res.Seg = fixSegments(res.Seg, data)

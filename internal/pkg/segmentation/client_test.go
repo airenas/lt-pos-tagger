@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"sync"
 	"testing"
 
 	"github.com/airenas/lt-pos-tagger/internal/pkg/api"
@@ -21,7 +20,7 @@ func initServer(t *testing.T, urlStr, resp string, code int) (*Client, *httptest
 	api := Client{}
 	api.httpclient = server.Client()
 	api.url = server.URL
-	api.lexLock = &sync.Mutex{}
+	api.rateLimit = make(chan struct{}, 1)
 	return &api, server
 }
 
@@ -100,8 +99,9 @@ func TestFixSegments(t *testing.T) {
 		{v: [][]int{{0, 3}}, s: "a:2", e: [][]int{{0, 1}, {1, 1}, {2, 1}}, i: "parses ':'"},
 		{v: [][]int{{0, 4}}, s: "10;2", e: [][]int{{0, 2}, {2, 1}, {3, 1}}, i: "parses ';'"},
 	}
-
-	for i, tc := range tests {
-		assert.Equal(t, tc.e, fixSegments(tc.v, tc.s), "Fail %d - %s", i, tc.i)
+	for _, tt := range tests {
+		t.Run(tt.i, func(t *testing.T) {
+			assert.Equal(t, tt.e, fixSegments(tt.v, tt.s), "Fail %s", tt.i)
+		})
 	}
 }
