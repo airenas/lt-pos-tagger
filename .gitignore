@@ -16,3 +16,4 @@
 go.sum
 build/lt-pos-tagger/Dockerfile
 build/lt-pos-tagger/data/**
+.vscode/**
