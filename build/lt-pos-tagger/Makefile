@@ -16,15 +16,8 @@ build: $(dist_dir)/$(executable_name)
 ########### DOCKER ##################################################################
 tag=$(service):$(version).$(commit_count)
 
-up-version:
-	rm -f $(dist_dir)/.version
-$(dist_dir)/.version:
-	echo $(version).$(commit_count) > $@
-Dockerfile: Dockerfile.in up-version $(dist_dir)/.version
-	cat $< | VERSION=$(version).$(commit_count) envsubst > $@
-
-dbuild: $(dist_dir)/$(executable_name) Dockerfile
-	docker build -t $(tag) ./
+dbuild: $(dist_dir)/$(executable_name)
+	docker build -t $(tag) --build-arg BUILD_VERSION=$(version).$(commit_count)  ./
 
 dpush: dbuild
 	docker push $(tag)
@@ -33,4 +26,4 @@ clean:
 	rm -rf $(dist_dir)
 
 .PHONY:
-	clean build dbuild dpush up-version
+	clean build dbuild dpush
