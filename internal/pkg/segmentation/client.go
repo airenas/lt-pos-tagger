@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"regexp"
 	"time"
+	"unicode/utf8"
 
 	"github.com/airenas/go-app/pkg/goapp"
 	"github.com/airenas/lt-pos-tagger/internal/pkg/api"
@@ -38,7 +39,7 @@ func NewClient(url string) (*Client, error) {
 
 //Process invokes ws
 func (t *Client) Process(data string) (*api.SegmenterResult, error) {
-	if len([]rune(data)) == 1 {
+	if utf8.RuneCountInString(data) == 1 {
 		return &api.SegmenterResult{Seg: [][]int{{0, 1}}, P: [][]int{{0, 1}}, S: [][]int{{0, 1}}}, nil
 	}
 

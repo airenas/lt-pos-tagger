@@ -75,12 +75,11 @@ func initRoutes(data *Data) *echo.Echo {
 
 type textBinder struct{}
 
-func (cb *textBinder) Bind(s *string, c echo.Context) error {
+func (cb *textBinder) Bind(c echo.Context, s *string) error {
 	bodyBytes, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Can't get data").SetInternal(err)
 	}
-	*s = string(bodyBytes)
 	*s = strings.TrimSpace(string(bodyBytes))
 	if *s == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "No input")
@@ -93,7 +92,7 @@ func handleText(data *Data) func(echo.Context) error {
 		defer goapp.Estimate("Service method: tag")()
 		tb := &textBinder{}
 		var text string
-		if err := tb.Bind(&text, c); err != nil {
+		if err := tb.Bind(c, &text); err != nil {
 			goapp.Log.Error(err)
 			return err
 		}
