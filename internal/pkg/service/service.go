@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/airenas/go-app/pkg/goapp"
 	"github.com/airenas/lt-pos-tagger/internal/pkg/api"
@@ -44,6 +45,10 @@ func StartWebServer(data *Data) error {
 	e := initRoutes(data)
 
 	e.Server.Addr = ":" + portStr
+	e.Server.IdleTimeout = 3 * time.Minute
+	e.Server.ReadHeaderTimeout = 10 * time.Second
+	e.Server.ReadTimeout = 20 * time.Second
+	e.Server.WriteTimeout = 30 * time.Second
 
 	w := goapp.Log.Writer()
 	defer w.Close()
