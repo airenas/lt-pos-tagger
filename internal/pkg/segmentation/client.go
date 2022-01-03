@@ -46,7 +46,7 @@ func (t *Client) Process(data string) (*api.SegmenterResult, error) {
 	select {
 	case t.rateLimit <- struct{}{}:
 	case <-time.After(20 * time.Second):
-		return nil, errors.Errorf("lex too busy, timeouted")
+		return nil, utils.ErrTooBusy
 	}
 	defer func() { <-t.rateLimit }()
 

@@ -10,6 +10,7 @@ import (
 
 	"github.com/airenas/go-app/pkg/goapp"
 	"github.com/airenas/lt-pos-tagger/internal/pkg/api"
+	"github.com/airenas/lt-pos-tagger/internal/pkg/utils"
 	"github.com/pkg/errors"
 )
 
@@ -48,7 +49,7 @@ func (t *Client) Process(text string, data *api.SegmenterResult) (*api.TaggerRes
 	select {
 	case t.rateLimit <- struct{}{}:
 	case <-time.After(20 * time.Second):
-		return nil, errors.Errorf("morphology too busy, timeouted")
+		return nil, utils.ErrTooBusy
 	}
 	defer func() { <-t.rateLimit }()
 

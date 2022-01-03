@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/airenas/lt-pos-tagger/internal/pkg/api"
+	"github.com/airenas/lt-pos-tagger/internal/pkg/utils"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -85,6 +86,16 @@ func TestFailsMorph(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, tResp.Code)
 }
 
+func TestFailsMorph_TooBusy(t *testing.T) {
+	initTest(t)
+	req := httptest.NewRequest("POST", "/tag", strings.NewReader("mama o"))
+
+	tData.Tagger = &testTagger{err: utils.ErrTooBusy}
+	tEcho.ServeHTTP(tResp, req)
+
+	assert.Equal(t, http.StatusTooManyRequests, tResp.Code)
+}
+
 func TestFailsLex(t *testing.T) {
 	initTest(t)
 	req := httptest.NewRequest("POST", "/tag", strings.NewReader("mama o"))
@@ -93,6 +104,16 @@ func TestFailsLex(t *testing.T) {
 	tEcho.ServeHTTP(tResp, req)
 
 	assert.Equal(t, http.StatusInternalServerError, tResp.Code)
+}
+
+func TestFailsLex_TooBusy(t *testing.T) {
+	initTest(t)
+	req := httptest.NewRequest("POST", "/tag", strings.NewReader("mama o"))
+
+	tData.Segmenter = &testLex{err: utils.ErrTooBusy}
+	tEcho.ServeHTTP(tResp, req)
+
+	assert.Equal(t, http.StatusTooManyRequests, tResp.Code)
 }
 
 func TestMapOK(t *testing.T) {

@@ -83,7 +83,7 @@ func (cb *textBinder) Bind(s *string, c echo.Context) error {
 	*s = string(bodyBytes)
 	*s = strings.TrimSpace(string(bodyBytes))
 	if *s == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "No input", err)
+		return echo.NewHTTPError(http.StatusBadRequest, "No input")
 	}
 	return nil
 }
@@ -101,13 +101,13 @@ func handleText(data *Data) func(echo.Context) error {
 		sgm, err := data.Segmenter.Process(text)
 		if err != nil {
 			goapp.Log.Error(err)
-			return echo.NewHTTPError(http.StatusInternalServerError, "Can't segment")
+			return echo.NewHTTPError(mapHttpError(err), "Can't segment")
 		}
 
 		tgr, err := data.Tagger.Process(text, sgm)
 		if err != nil {
 			goapp.Log.Error(err)
-			return echo.NewHTTPError(http.StatusInternalServerError, "Can't tag")
+			return echo.NewHTTPError(mapHttpError(err), "Can't tag")
 		}
 		goapp.Log.Debugf("Tagger: %v", tgr)
 
@@ -120,6 +120,13 @@ func handleText(data *Data) func(echo.Context) error {
 
 		return c.JSON(http.StatusOK, res)
 	}
+}
+
+func mapHttpError(err error) int {
+	if err == utils.ErrTooBusy {
+		return http.StatusTooManyRequests
+	}
+	return http.StatusInternalServerError
 }
 
 func live(data *Data) func(echo.Context) error {
