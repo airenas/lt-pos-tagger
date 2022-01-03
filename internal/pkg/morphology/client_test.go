@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/airenas/lt-pos-tagger/internal/pkg/api"
@@ -18,7 +19,7 @@ func initServer(t *testing.T, urlStr, resp string, code int) (*Client, *httptest
 		rw.Write([]byte(resp))
 	}))
 	// Use Client & URL from our local test server
-	api := Client{rateLimit: make(chan bool, 10)}
+	api := Client{rateLimit: make(chan struct{}, 10)}
 	api.httpclient = server.Client()
 	api.url = server.URL
 	return &api, server
@@ -81,33 +82,33 @@ func TestProcess_WrongLex_Fails(t *testing.T) {
 	assert.Nil(t, r)
 }
 
-func TestValidateResp(t *testing.T) {
-	tResp := httptest.NewRecorder()
-	tResp.Body = bytes.NewBuffer([]byte("olia"))
-	tResp.Code = 200
-	err := ValidateResponse(tResp.Result())
-	assert.Nil(t, err)
-}
-
-func TestValidateResp_Fail(t *testing.T) {
-	tResp := httptest.NewRecorder()
-	tResp.Body = bytes.NewBuffer([]byte("err olia"))
-	tResp.Code = 400
-	err := ValidateResponse(tResp.Result())
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "err olia")
-}
-
-func TestValidateResp_FailLong(t *testing.T) {
-	tResp := httptest.NewRecorder()
-	ls := ""
-	for len(ls) < 100 {
-		ls = ls + "abc"
+func TestValidateResponse(t *testing.T) {
+	tests := []struct {
+		name       string
+		code       int
+		body       string
+		wantErrStr string
+	}{
+		{name: "200", code: 200, body: "OK", wantErrStr: ""},
+		{name: "299", code: 299, body: "OK", wantErrStr: ""},
+		{name: "400", code: 400, body: "error", wantErrStr: "wrong response code from server. Code: 400\nerror"},
+		{name: "503", code: 503, body: "error", wantErrStr: "wrong response code from server. Code: 503\nerror"},
+		{name: "400 long", code: 400, body: strings.Repeat("error", 50), wantErrStr: "wrong response code from server. Code: 400\n" +
+			strings.Repeat("error", 50)[:100] + "..."},
+		{name: "400 long", code: 400, body: strings.Repeat("error", 50)[:100], wantErrStr: "wrong response code from server. Code: 400\n" +
+			strings.Repeat("error", 50)[:100]},
 	}
-	tResp.Body = bytes.NewBuffer([]byte(ls))
-	tResp.Code = 400
-	err := ValidateResponse(tResp.Result())
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "abc")
-	assert.Contains(t, err.Error(), "...")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tResp := httptest.NewRecorder()
+			tResp.Body = bytes.NewBuffer([]byte(tt.body))
+			tResp.Code = tt.code
+			err := ValidateResponse(tResp.Result())
+			if tt.wantErrStr != "" {
+				assert.Equal(t, tt.wantErrStr, err.Error())
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
 }
