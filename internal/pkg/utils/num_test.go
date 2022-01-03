@@ -27,7 +27,9 @@ func TestIsNumber(t *testing.T) {
 		{v: ".", e: false},
 	}
 
-	for i, tc := range tests {
-		assert.Equal(t, tc.e, IsNumber(tc.v), "Fail %d - %s", i, tc.v)
+	for _, tt := range tests {
+		t.Run(tt.v, func(t *testing.T) {
+			assert.Equal(t, tt.e, IsNumber(tt.v), "Fail %s", tt.v)
+		})
 	}
 }
