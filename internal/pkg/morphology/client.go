@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -84,7 +83,7 @@ func (t *Client) Process(text string, data *api.SegmenterResult) (*api.TaggerRes
 	if resp.Body != nil {
 		defer resp.Body.Close()
 	}
-	err = ValidateResponse(resp)
+	err = goapp.ValidateHTTPResp(resp, 100)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't invoke tagger")
 	}
@@ -94,24 +93,4 @@ func (t *Client) Process(text string, data *api.SegmenterResult) (*api.TaggerRes
 		return nil, errors.Wrap(err, "can't decode response")
 	}
 	return &result, nil
-}
-
-//ValidateResponse returns error if code is not in [200, 299]
-func ValidateResponse(resp *http.Response) error {
-	if !(resp.StatusCode >= 200 && resp.StatusCode <= 299) {
-		bodyBytes := make([]byte, 101)
-		n, err := resp.Body.Read(bodyBytes)
-		if (err != nil) {
-			goapp.Log.Error(err)
-		}
-		trimS := ""
-		if n > 100 {
-			n = 100
-			trimS = "..."
-		}
-		msg := fmt.Sprintf("wrong response code from server. Code: %d\n%s",
-			resp.StatusCode, string(bodyBytes[:n])+trimS)
-		return errors.New(msg)
-	}
-	return nil
 }

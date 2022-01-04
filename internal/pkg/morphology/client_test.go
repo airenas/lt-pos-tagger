@@ -1,11 +1,9 @@
 package morphology
 
 import (
-	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/airenas/lt-pos-tagger/internal/pkg/api"
@@ -80,35 +78,4 @@ func TestProcess_WrongLex_Fails(t *testing.T) {
 	r, err = cl.Process("olia", &api.SegmenterResult{})
 	assert.NotNil(t, err)
 	assert.Nil(t, r)
-}
-
-func TestValidateResponse(t *testing.T) {
-	tests := []struct {
-		name       string
-		code       int
-		body       string
-		wantErrStr string
-	}{
-		{name: "200", code: 200, body: "OK", wantErrStr: ""},
-		{name: "299", code: 299, body: "OK", wantErrStr: ""},
-		{name: "400", code: 400, body: "error", wantErrStr: "wrong response code from server. Code: 400\nerror"},
-		{name: "503", code: 503, body: "error", wantErrStr: "wrong response code from server. Code: 503\nerror"},
-		{name: "400 long", code: 400, body: strings.Repeat("error", 50), wantErrStr: "wrong response code from server. Code: 400\n" +
-			strings.Repeat("error", 50)[:100] + "..."},
-		{name: "400 long", code: 400, body: strings.Repeat("error", 50)[:100], wantErrStr: "wrong response code from server. Code: 400\n" +
-			strings.Repeat("error", 50)[:100]},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tResp := httptest.NewRecorder()
-			tResp.Body = bytes.NewBuffer([]byte(tt.body))
-			tResp.Code = tt.code
-			err := ValidateResponse(tResp.Result())
-			if tt.wantErrStr != "" {
-				assert.Equal(t, tt.wantErrStr, err.Error())
-			} else {
-				assert.Nil(t, err)
-			}
-		})
-	}
 }

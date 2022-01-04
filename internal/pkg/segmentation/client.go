@@ -11,7 +11,6 @@ import (
 
 	"github.com/airenas/go-app/pkg/goapp"
 	"github.com/airenas/lt-pos-tagger/internal/pkg/api"
-	"github.com/airenas/lt-pos-tagger/internal/pkg/morphology"
 	"github.com/airenas/lt-pos-tagger/internal/pkg/utils"
 	"github.com/pkg/errors"
 	"mvdan.cc/xurls/v2"
@@ -65,7 +64,7 @@ func (t *Client) Process(data string) (*api.SegmenterResult, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "can't invoke lex %s", t.url)
 	}
-	err = morphology.ValidateResponse(resp)
+	err = goapp.ValidateHTTPResp(resp, 100)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't invoke lex")
 	}
