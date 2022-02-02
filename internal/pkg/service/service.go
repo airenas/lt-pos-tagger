@@ -100,13 +100,13 @@ func handleText(data *Data) func(echo.Context) error {
 		sgm, err := data.Segmenter.Process(text)
 		if err != nil {
 			goapp.Log.Error(err)
-			return echo.NewHTTPError(mapHttpError(err), "Can't segment")
+			return echo.NewHTTPError(mapHTTPError(err), "Can't segment")
 		}
 
 		tgr, err := data.Tagger.Process(text, sgm)
 		if err != nil {
 			goapp.Log.Error(err)
-			return echo.NewHTTPError(mapHttpError(err), "Can't tag")
+			return echo.NewHTTPError(mapHTTPError(err), "Can't tag")
 		}
 		goapp.Log.Debugf("Tagger: %v", tgr)
 
@@ -121,7 +121,7 @@ func handleText(data *Data) func(echo.Context) error {
 	}
 }
 
-func mapHttpError(err error) int {
+func mapHTTPError(err error) int {
 	if err == utils.ErrTooBusy {
 		return http.StatusTooManyRequests
 	}
