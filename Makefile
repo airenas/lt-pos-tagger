@@ -18,6 +18,14 @@ test/lint:
 	go get -u golang.org/x/lint/golint
 	golint -set_exit_status ./...
 .PHONY: test/lint
+## run load tests - start services, do load tests, clean services
+test/load: 
+	cd testing/load && $(MAKE) start all clean	
+.PHONY: test/load
+## run integration tests - start services, do tests, clean services
+test/integration: 
+	cd testing/integration && $(MAKE) start test/integration clean	
+.PHONY: test/integration
 #####################################################################################
 ## build docker image
 build/lt-pos-tagger:

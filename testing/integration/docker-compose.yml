@@ -1,0 +1,42 @@
+version: '3.7'
+
+services:
+
+  tagger:
+    image: airenas/tagger:${TAGGER_VERSION}
+    environment:
+      - MORPHOLOGY_URL=http://semantika:8090/morphology
+      - SEGMENTATION_URL=http://lex:8080/
+    restart: on-failure
+    depends_on:
+      - semantika
+      - lex 
+
+  semantika:
+    image: semantikadocker.vdu.lt/v2/morph:0.2
+    restart: on-failure   
+
+  lex:
+    image: semantikadocker.vdu.lt/lex:latest
+    restart: on-failure   
+
+  integration-tests:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.test
+    depends_on:
+      - tagger
+    environment:
+      TAGGER_URL: http://tagger:8000  
+      MORPHOLOGY_URL: http://semantika:8090  
+    volumes:
+      - ../../:/go/src/
+    command: -tags integration -v -count=1 ./testing/integration/...
+
+  unit-tests:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.test
+    volumes:
+      - ../../:/go/src/
+    command: -v -count=1 ./...
