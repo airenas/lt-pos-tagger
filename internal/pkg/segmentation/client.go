@@ -30,10 +30,18 @@ func NewClient(url string) (*Client, error) {
 		return nil, errors.New("No lex URL")
 	}
 	res.url = url
-	res.httpclient = http.DefaultClient
+	res.httpclient = &http.Client{Transport: newTransport()}
 	res.rateLimit = make(chan struct{}, 1)
 
 	return &res, nil
+}
+
+func newTransport() http.RoundTripper {
+	res := http.DefaultTransport.(*http.Transport).Clone()
+	res.MaxIdleConns = 5
+	res.MaxConnsPerHost = 5
+	res.MaxIdleConnsPerHost = 5
+	return res	
 }
 
 //Process invokes ws

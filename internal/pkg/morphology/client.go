@@ -37,9 +37,17 @@ func NewClient(url string) (*Client, error) {
 		return nil, errors.New("No morphology URL")
 	}
 	res.url = url
-	res.httpclient = http.DefaultClient
+	res.httpclient = &http.Client{Transport: newTransport()}
 	res.rateLimit = make(chan struct{}, 10)
 	return &res, nil
+}
+
+func newTransport() http.RoundTripper {
+	res := http.DefaultTransport.(*http.Transport).Clone()
+	res.MaxIdleConns = 20
+	res.MaxConnsPerHost = 20
+	res.MaxIdleConnsPerHost = 20
+	return res	
 }
 
 //Process invokes ws
