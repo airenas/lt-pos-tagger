@@ -67,7 +67,7 @@ func waitForReady(url string) <-chan struct{} {
 	res := make(chan struct{}, 1)
 	go func() {
 		for {
-			if err := listens(url); err != nil {
+			if err := listen(url); err != nil {
 				log.Printf("waiting for %s ...", url)
 				time.Sleep(500 * time.Millisecond)
 			} else {
@@ -79,7 +79,7 @@ func waitForReady(url string) <-chan struct{} {
 	return res
 }
 
-func listens(urlStr string) error {
+func listen(urlStr string) error {
 	log.Printf("dial %s", urlStr)
 	conn, err := net.DialTimeout("tcp", urlStr, time.Second)
 	if err != nil {
