@@ -98,6 +98,8 @@ func TestFixSegments(t *testing.T) {
 		{v: [][]int{{0, 11}}, s: "1.12312e+15", e: [][]int{{0, 11}}, i: "leaves scientific format"},
 		{v: [][]int{{0, 3}}, s: "a:2", e: [][]int{{0, 1}, {1, 1}, {2, 1}}, i: "parses ':'"},
 		{v: [][]int{{0, 4}}, s: "10;2", e: [][]int{{0, 2}, {2, 1}, {3, 1}}, i: "parses ';'"},
+		{v: [][]int{{0, 7}}, s: "'aa'bb'", e: [][]int{{0, 1}, {1, 2}, {3, 1}, {4, 2}, {6, 1}}, i: "splits '\\''"},
+		{v: [][]int{{0, 1}, {1, 3}}, s: "'Aa'", e: [][]int{{0, 1}, {1, 2}, {3, 1}}, i: "splits '\\''"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.i, func(t *testing.T) {
