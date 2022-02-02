@@ -21,7 +21,7 @@ test/lint:
 #####################################################################################
 ## build docker image
 build/lt-pos-tagger:
-	cd build/lt-pos-tagger && $(MAKE) clean dpush
+	cd build/lt-pos-tagger && $(MAKE) clean dbuild
 .PHONY: build/lt-pos-tagger
 #####################################################################################
 ## build and push lt-pos-tagger docker image
@@ -31,4 +31,5 @@ docker/push:
 #####################################################################################
 ## cleans all temporary data
 clean:
-	cd build/lt-pos-tagger & $(MAKE) clean
+	cd build/lt-pos-tagger && $(MAKE) clean
+.PHONY: clean	
