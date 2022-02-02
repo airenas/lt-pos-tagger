@@ -11,9 +11,13 @@ help:
 		awk '{info=$$0; getline; print "  " $$0 ": " info;}' | column -t -s ':' | sort
 .PHONY: help
 #####################################################################################
-## start all containers for testing
+## start all containers for testing, waits for semantika to initialize
 start: 
 	docker-compose up -d --build
+	@echo "wait for semantika ready"
+	@docker-compose exec tagger timeout 20 sh -c 'until nc -z semantika 8090; do sleep 1; printf "."; done'
+	@echo "\nReady to go"
+
 .PHONY: start
 ## clean everything, stops docker containers and removes them
 clean:

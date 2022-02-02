@@ -9,9 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Init services
-        run: cd example && make up
-      - name: Wait service up
-        run: sleep 20
+      - name: Build container
+        run: make build/lt-pos-tagger
       - name: Run load tests
-        run: cd tests && make all vu=5
+        run: make test/load 
