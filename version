@@ -1,0 +1,3 @@
+commit_count=$(shell git rev-list --count HEAD)
+
+tagger_version=0.5.$(commit_count)
