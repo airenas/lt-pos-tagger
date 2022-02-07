@@ -29,6 +29,7 @@ type Client struct {
 	httpclient *http.Client
 	url        string
 	rateLimit  chan struct{}
+	timeOut    time.Duration
 }
 
 //NewClient creates a tagger client
@@ -40,6 +41,7 @@ func NewClient(url string) (*Client, error) {
 	res.url = url
 	res.httpclient = &http.Client{Transport: newTransport()}
 	res.rateLimit = make(chan struct{}, 10)
+	res.timeOut = time.Second * 20
 	return &res, nil
 }
 
@@ -56,7 +58,7 @@ func (t *Client) Process(text string, data *api.SegmenterResult) (*api.TaggerRes
 	// allow only 10 paraller requests to morph as it fails to process more
 	select {
 	case t.rateLimit <- struct{}{}:
-	case <-time.After(20 * time.Second):
+	case <-time.After(t.timeOut):
 		return nil, utils.ErrTooBusy
 	}
 	defer func() { <-t.rateLimit }()
@@ -76,7 +78,7 @@ func (t *Client) Process(text string, data *api.SegmenterResult) (*api.TaggerRes
 	if err != nil {
 		return nil, errors.Wrap(err, "can't marshal data")
 	}
-	ctx, cancelF := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancelF := context.WithTimeout(context.Background(), t.timeOut)
 	defer cancelF()
 
 	var result api.TaggerResult

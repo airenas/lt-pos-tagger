@@ -20,8 +20,6 @@ func initServer(t *testing.T, urlStr, resp string, code int) (*Client, *httptest
 	// Use Client & URL from our local test server
 	api, _ := NewClient(server.URL)
 	api.httpclient = server.Client()
-	api.url = server.URL
-	api.rateLimit = make(chan struct{}, 1)
 	return api, server
 }
 

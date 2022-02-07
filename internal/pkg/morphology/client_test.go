@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/airenas/lt-pos-tagger/internal/pkg/api"
 	"github.com/stretchr/testify/assert"
@@ -17,10 +18,9 @@ func initServer(t *testing.T, urlStr, resp string, code int) (*Client, *httptest
 		rw.Write([]byte(resp))
 	}))
 	// Use Client & URL from our local test server
-	api := Client{rateLimit: make(chan struct{}, 10)}
+	api, _ := NewClient(server.URL)
 	api.httpclient = server.Client()
-	api.url = server.URL
-	return &api, server
+	return api, server
 }
 
 func TestNew(t *testing.T) {
@@ -59,7 +59,7 @@ func TestProcess_WrongCode_Fails(t *testing.T) {
 func TestProcess_Retry(t *testing.T) {
 	cl, server := initServer(t, "/", "", 429)
 	defer server.Close()
-
+	cl.timeOut = 500 * time.Millisecond
 	r, err := cl.Process("olia", &api.SegmenterResult{Seg: [][]int{{1}}, S: [][]int{{1}}})
 	assert.NotNil(t, err)
 	assert.Nil(t, r)
