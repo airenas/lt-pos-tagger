@@ -78,30 +78,57 @@ func (t *Client) Process(text string, data *api.SegmenterResult) (*api.TaggerRes
 	}
 	ctx, cancelF := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancelF()
-	req, err := http.NewRequest(http.MethodPost, t.url, bytes.NewBuffer(bytesData))
-	if err != nil {
-		return nil, errors.Wrapf(err, "can't prepare request to '%s'", t.url)
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req = req.WithContext(ctx)
-	//goapp.Log.Debugf("Input: %s", string(bytesData))
-	resp, err := t.httpclient.Do(req)
-	if err != nil {
-		return nil, errors.Wrapf(err, "can't invoke tagger %s", t.url)
-	}
-	defer func() {
-		_, _ = io.Copy(io.Discard, resp.Body)
-		_ = resp.Body.Close()
-	}()
 
-	err = goapp.ValidateHTTPResp(resp, 100)
-	if err != nil {
-		return nil, errors.Wrap(err, "can't invoke tagger")
-	}
 	var result api.TaggerResult
-	err = json.NewDecoder(resp.Body).Decode(&result)
+
+	oneCall := func(ctx context.Context, result *api.TaggerResult) (bool, error) {
+		req, err := http.NewRequest(http.MethodPost, t.url, bytes.NewBuffer(bytesData))
+		if err != nil {
+			return false, errors.Wrapf(err, "can't prepare request to '%s'", t.url)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req = req.WithContext(ctx)
+		//goapp.Log.Debugf("Input: %s", string(bytesData))
+		resp, err := t.httpclient.Do(req)
+		if err != nil {
+			return true, errors.Wrapf(err, "can't invoke tagger %s", t.url)
+		}
+		defer func() {
+			_, _ = io.Copy(io.Discard, resp.Body)
+			_ = resp.Body.Close()
+		}()
+
+		err = goapp.ValidateHTTPResp(resp, 100)
+		if err != nil {
+			return utils.IsRetryCode(resp.StatusCode), errors.Wrap(err, "can't invoke tagger")
+		}
+		err = json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			return true, errors.Wrap(err, "can't decode response")
+		}
+		return false, nil
+	}
+
+	for _, st := range utils.ExpBackoffList {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-utils.RandomWait(st):
+		}
+		var retry bool
+		retry, err = oneCall(ctx, &result)
+		if !retry {
+			if err != nil {
+				return nil, err
+			}
+			return &result, nil
+		}
+		if err != nil {
+			goapp.Log.Warn(err)
+		}
+	}
 	if err != nil {
-		return nil, errors.Wrap(err, "can't decode response")
+		return nil, err
 	}
 	return &result, nil
 }

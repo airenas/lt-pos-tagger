@@ -22,6 +22,7 @@ type Client struct {
 	httpclient *http.Client
 	url        string
 	rateLimit  chan struct{}
+	timeOut    time.Duration
 }
 
 //NewClient creates a tagger client
@@ -33,6 +34,7 @@ func NewClient(url string) (*Client, error) {
 	res.url = url
 	res.httpclient = &http.Client{Transport: newTransport()}
 	res.rateLimit = make(chan struct{}, 1)
+	res.timeOut = 20 * time.Second
 
 	return &res, nil
 }
@@ -42,7 +44,7 @@ func newTransport() http.RoundTripper {
 	res.MaxIdleConns = 5
 	res.MaxConnsPerHost = 5
 	res.MaxIdleConnsPerHost = 5
-	return res	
+	return res
 }
 
 //Process invokes ws
@@ -54,37 +56,64 @@ func (t *Client) Process(data string) (*api.SegmenterResult, error) {
 	// lex fails if several requests go simultaneously
 	select {
 	case t.rateLimit <- struct{}{}:
-	case <-time.After(20 * time.Second):
+	case <-time.After(t.timeOut):
 		return nil, utils.ErrTooBusy
 	}
 	defer func() { <-t.rateLimit }()
 
-	ctx, cancelF := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancelF := context.WithTimeout(context.Background(), t.timeOut)
 	defer cancelF()
-	bytesData := []byte(data)
-	req, err := http.NewRequest(http.MethodPost, t.url, bytes.NewBuffer(bytesData))
-	if err != nil {
-		return nil, errors.Wrapf(err, "can't prepare request to '%s'", t.url)
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req = req.WithContext(ctx)
 
-	resp, err := t.httpclient.Do(req)
-	if err != nil {
-		return nil, errors.Wrapf(err, "can't invoke lex %s", t.url)
-	}
-	defer func() {
-		_, _ = io.Copy(io.Discard, resp.Body)
-		_ = resp.Body.Close()
-	}()
-	err = goapp.ValidateHTTPResp(resp, 100)
-	if err != nil {
-		return nil, errors.Wrap(err, "can't invoke lex")
-	}
+	bytesData := []byte(data)
 	var res api.SegmenterResult
-	err = json.NewDecoder(resp.Body).Decode(&res)
+	oneCall := func(ctx context.Context, result *api.SegmenterResult) (bool, error) {
+		req, err := http.NewRequest(http.MethodPost, t.url, bytes.NewBuffer(bytesData))
+		if err != nil {
+			return false, errors.Wrapf(err, "can't prepare request to '%s'", t.url)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req = req.WithContext(ctx)
+
+		resp, err := t.httpclient.Do(req)
+		if err != nil {
+			return true, errors.Wrapf(err, "can't invoke lex %s", t.url)
+		}
+		defer func() {
+			_, _ = io.Copy(io.Discard, resp.Body)
+			_ = resp.Body.Close()
+		}()
+		err = goapp.ValidateHTTPResp(resp, 100)
+		if err != nil {
+			return utils.IsRetryCode(resp.StatusCode), errors.Wrap(err, "can't invoke lex")
+		}
+		err = json.NewDecoder(resp.Body).Decode(&res)
+		if err != nil {
+			return true, errors.Wrap(err, "can't decode response")
+		}
+		return false, nil
+	}
+
+	var err error
+	for _, st := range utils.ExpBackoffList {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-utils.RandomWait(st):
+		}
+		var retry bool
+		retry, err = oneCall(ctx, &res)
+		if !retry {
+			if err != nil {
+				return nil, err
+			}
+			return &res, nil
+		}
+		if err != nil {
+			goapp.Log.Warn(err)
+		}
+	}
 	if err != nil {
-		return nil, errors.Wrap(err, "can't decode response")
+		return nil, err
 	}
 	goapp.Log.Debugf("Lex: %v", res.Seg)
 	res.Seg = fixSegments(res.Seg, data)

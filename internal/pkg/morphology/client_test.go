@@ -56,6 +56,15 @@ func TestProcess_WrongCode_Fails(t *testing.T) {
 	assert.Nil(t, r)
 }
 
+func TestProcess_Retry(t *testing.T) {
+	cl, server := initServer(t, "/", "", 429)
+	defer server.Close()
+
+	r, err := cl.Process("olia", &api.SegmenterResult{Seg: [][]int{{1}}, S: [][]int{{1}}})
+	assert.NotNil(t, err)
+	assert.Nil(t, r)
+}
+
 func TestProcess_NoTex_Fails(t *testing.T) {
 	rb, _ := json.Marshal(api.TaggerResult{})
 	cl, server := initServer(t, "/", string(rb), 200)
