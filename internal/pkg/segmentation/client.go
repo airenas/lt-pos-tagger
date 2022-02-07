@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"regexp"
 	"time"
@@ -72,12 +73,13 @@ func (t *Client) Process(data string) (*api.SegmenterResult, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "can't invoke lex %s", t.url)
 	}
+	defer func() {
+		_, _ = io.Copy(io.Discard, resp.Body)
+		_ = resp.Body.Close()
+	}()
 	err = goapp.ValidateHTTPResp(resp, 100)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't invoke lex")
-	}
-	if resp.Body != nil {
-		defer resp.Body.Close()
 	}
 	var res api.SegmenterResult
 	err = json.NewDecoder(resp.Body).Decode(&res)

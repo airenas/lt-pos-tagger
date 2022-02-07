@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"time"
 
@@ -47,7 +48,7 @@ func newTransport() http.RoundTripper {
 	res.MaxIdleConns = 20
 	res.MaxConnsPerHost = 20
 	res.MaxIdleConnsPerHost = 20
-	return res	
+	return res
 }
 
 //Process invokes ws
@@ -88,9 +89,11 @@ func (t *Client) Process(text string, data *api.SegmenterResult) (*api.TaggerRes
 	if err != nil {
 		return nil, errors.Wrapf(err, "can't invoke tagger %s", t.url)
 	}
-	if resp.Body != nil {
-		defer resp.Body.Close()
-	}
+	defer func() {
+		_, _ = io.Copy(io.Discard, resp.Body)
+		_ = resp.Body.Close()
+	}()
+
 	err = goapp.ValidateHTTPResp(resp, 100)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't invoke tagger")
