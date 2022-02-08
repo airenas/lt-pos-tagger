@@ -118,6 +118,20 @@ func TestPost_Number(t *testing.T) {
 	assert.Equal(t, service.ResultWord{Type: "SENTENCE_END"}, res[1])
 }
 
+func TestPost_FixSegments(t *testing.T) {
+	t.Parallel()
+	resp := invoke(t, newRequest(t, http.MethodPost, "/tag", "olia-olia"))
+	checkCode(t, resp, http.StatusOK)
+	res := []service.ResultWord{}
+	decode(t, resp, &res)
+	require.NotEmpty(t, res)
+	require.Equal(t, 4, len(res))
+	assert.Equal(t, service.ResultWord{Type: "WORD", String: "olia", Mi: "Ig", Lemma: "olia"}, res[0])
+	assert.Equal(t, service.ResultWord{Type: "SEPARATOR", String: "-", Mi: "Th", Lemma: ""}, res[1])
+	assert.Equal(t, service.ResultWord{Type: "WORD", String: "olia", Mi: "Ig", Lemma: "olia"}, res[2])
+	assert.Equal(t, service.ResultWord{Type: "SENTENCE_END"}, res[3])
+}
+
 func TestPost_Empty(t *testing.T) {
 	t.Parallel()
 	resp := invoke(t, newRequest(t, http.MethodPost, "/tag", ""))

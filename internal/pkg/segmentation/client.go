@@ -106,7 +106,7 @@ func (t *Client) Process(data string) (*api.SegmenterResult, error) {
 			if err != nil {
 				return nil, err
 			}
-			return &res, nil
+			break
 		}
 		if err != nil {
 			goapp.Log.Warn(err)

@@ -123,7 +123,7 @@ func (t *Client) Process(text string, data *api.SegmenterResult) (*api.TaggerRes
 			if err != nil {
 				return nil, err
 			}
-			return &result, nil
+			break
 		}
 		if err != nil {
 			goapp.Log.Warn(err)
