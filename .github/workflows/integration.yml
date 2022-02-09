@@ -8,12 +8,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.x
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.17
       - uses: actions/checkout@v2
       - name: Build container
-        run: make build/lt-pos-tagger
+        run: make docker/build
       - name: Run integration tests
         run: make test/integration 

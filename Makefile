@@ -28,16 +28,17 @@ test/integration:
 .PHONY: test/integration
 #####################################################################################
 ## build docker image
-build/lt-pos-tagger:
-	cd build/lt-pos-tagger && $(MAKE) clean dbuild
-.PHONY: build/lt-pos-tagger
+docker/build:
+	cd build/lt-pos-tagger && $(MAKE) dbuild
+.PHONY: docker/build
 #####################################################################################
 ## build and push lt-pos-tagger docker image
 docker/push:
-	cd build/lt-pos-tagger && $(MAKE) clean dpush
+	cd build/lt-pos-tagger && $(MAKE) dpush
 .PHONY: docker/push
 #####################################################################################
 ## cleans all temporary data
 clean:
-	cd build/lt-pos-tagger && $(MAKE) clean
+	go clean
+	go mod tidy
 .PHONY: clean	

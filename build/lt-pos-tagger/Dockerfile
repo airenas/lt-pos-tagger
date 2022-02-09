@@ -1,3 +1,16 @@
+#########################################################################################
+## docker will invoke this filr from ../.. dir in order to access code
+#########################################################################################
+FROM golang:1.17-alpine as builder
+
+ARG BUILD_VERSION=0.1
+
+WORKDIR /go/src/
+ENV CGO_ENABLED=0
+
+COPY . /go/src
+RUN CGO_ENABLED=0 go build -o /go/bin/tagger -ldflags "-X main.version=$BUILD_VERSION" cmd/tagger/main.go
+#########################################################################################
 FROM iron/base:3.14.0
 
 ARG BUILD_VERSION=0.1
@@ -19,8 +32,8 @@ ENV UID=999
 RUN addgroup app && adduser -S -G app app --uid $UID app
 RUN mkdir -p /app && chown -R app:app /app   
 
-COPY data/tagger /app/
-COPY config.yaml /app/
+COPY --from=builder /go/bin/tagger /app/
+COPY build/lt-pos-tagger/config.yaml /app/
 
 RUN chown app:app /app/* /app
  
