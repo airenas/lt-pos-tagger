@@ -15,7 +15,7 @@ help:
 start: 
 	docker-compose up -d --build
 	@echo "wait for semantika ready"
-	@docker-compose exec -T tagger timeout 20 sh -c 'until nc -z semantika 8090; do sleep 1; printf "."; done'
+	@docker-compose exec -T tagger timeout 40 sh -c 'until nc -z semantika 8090; do sleep 1; printf "."; done'
 	@echo "\nReady to go"
 
 .PHONY: start
