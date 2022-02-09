@@ -19,12 +19,12 @@ test/lint:
 	golint -set_exit_status ./...
 .PHONY: test/lint
 ## run load tests - start services, do load tests, clean services
-test/load: 
-	cd testing/load && $(MAKE) start all clean	
+test/load:
+	cd testing/load && $(MAKE) start all clean || ( $(MAKE) clean; exit 1; ) 
 .PHONY: test/load
 ## run integration tests - start services, do tests, clean services
-test/integration: 
-	cd testing/integration && $(MAKE) start test/integration clean	
+test/integration:
+	cd testing/integration && $(MAKE) start test/integration clean || ( $(MAKE) clean; exit 1; ) 	
 .PHONY: test/integration
 #####################################################################################
 ## build docker image
@@ -41,4 +41,6 @@ docker/push:
 clean:
 	go clean
 	go mod tidy
+	cd testing/integration && $(MAKE) clean
+	cd testing/load && $(MAKE) clean
 .PHONY: clean	
