@@ -1,5 +1,5 @@
 #########################################################################################
-## docker will invoke this filr from ../.. dir in order to access code
+## docker will invoke this file from ../.. dir in order to access code
 #########################################################################################
 FROM golang:1.17-alpine as builder
 
