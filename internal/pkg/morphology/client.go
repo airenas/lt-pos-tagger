@@ -96,7 +96,7 @@ func (t *Client) Process(text string, data *api.SegmenterResult) (*api.TaggerRes
 			return true, errors.Wrapf(err, "can't invoke tagger %s", t.url)
 		}
 		defer func() {
-			_, _ = io.Copy(io.Discard, resp.Body)
+			_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 10000))
 			_ = resp.Body.Close()
 		}()
 

@@ -79,7 +79,7 @@ func (t *Client) Process(data string) (*api.SegmenterResult, error) {
 			return true, errors.Wrapf(err, "can't invoke lex %s", t.url)
 		}
 		defer func() {
-			_, _ = io.Copy(io.Discard, resp.Body)
+			_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 10000))
 			_ = resp.Body.Close()
 		}()
 		err = goapp.ValidateHTTPResp(resp, 100)
