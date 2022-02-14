@@ -37,21 +37,28 @@ func TestMain(m *testing.M) {
 
 	tCtx, cf := context.WithTimeout(context.Background(), time.Second*20)
 	defer cf()
-	waitForOpen(tCtx, cfg.url)
-	waitForOpen(tCtx, cfg.semantikaURL)
+	waitForOpenOrFail(tCtx, cfg.url)
+	waitForOpenOrFail(tCtx, cfg.semantikaURL)
 
 	os.Exit(m.Run())
 }
 
-func waitForOpen(ctx context.Context, URL string) {
+func waitForOpenOrFail(ctx context.Context, URL string) {
 	u, err := url.Parse(URL)
 	if err != nil {
-		log.Fatalf("can't parse %s", URL)
+		log.Fatalf("FAIL: can't parse %s", URL)
 	}
-	select {
-	case <-ctx.Done():
-		log.Fatalf("can't access %s", URL)
-	case <-waitForReady(net.JoinHostPort(u.Hostname(), u.Port())):
+	for {
+		err = listen(net.JoinHostPort(u.Hostname(), u.Port()))
+		if err == nil {
+			return
+		}
+		select {
+		case <-ctx.Done():
+			log.Fatalf("FAIL: can't access %s", URL)
+			break
+		case <-time.After(500 * time.Millisecond):
+		}
 	}
 }
 
@@ -63,22 +70,6 @@ func getEnvOrFail(s string) string {
 	return res
 }
 
-func waitForReady(url string) <-chan struct{} {
-	res := make(chan struct{}, 1)
-	go func() {
-		for {
-			if err := listen(url); err != nil {
-				log.Printf("waiting for %s ...", url)
-				time.Sleep(500 * time.Millisecond)
-			} else {
-				res <- struct{}{}
-				return
-			}
-		}
-	}()
-	return res
-}
-
 func listen(urlStr string) error {
 	log.Printf("dial %s", urlStr)
 	conn, err := net.DialTimeout("tcp", urlStr, time.Second)
@@ -86,7 +77,7 @@ func listen(urlStr string) error {
 		return err
 	}
 	defer conn.Close()
-	return err
+	return nil
 }
 
 func TestLive(t *testing.T) {
@@ -150,6 +141,7 @@ func invoke(t *testing.T, r *http.Request) *http.Response {
 	t.Helper()
 	resp, err := cfg.httpclient.Do(r)
 	require.Nil(t, err, "not nil error = %v", err)
+	t.Cleanup(func() { resp.Body.Close() })
 	return resp
 }
 
