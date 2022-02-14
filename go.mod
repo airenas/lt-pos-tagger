@@ -3,7 +3,7 @@ module github.com/airenas/lt-pos-tagger
 go 1.17
 
 require (
-	github.com/airenas/go-app v0.3.0
+	github.com/airenas/go-app v0.3.18
 	github.com/facebookgo/grace v0.0.0-20180706040059-75cf19382434
 	github.com/labstack/echo-contrib v0.9.0
 	github.com/labstack/echo/v4 v4.1.17
