@@ -15,9 +15,8 @@ test/unit:
 ## code vet and lint
 test/lint: 
 	go vet ./...
-	go get -u golang.org/x/lint/golint
+	go install golang.org/x/lint/golint@latest
 	golint -set_exit_status ./...
-	go mod tidy
 .PHONY: test/lint
 ## run load tests - start services, do load tests, clean services
 test/load:
