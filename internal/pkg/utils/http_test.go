@@ -37,9 +37,9 @@ func Test_randNum(t *testing.T) {
 		from float64
 		to   float64
 	}{
-		{name: "1", args: args{st: 1}, from: 0.5, to: 1.5},
-		{name: "1000", args: args{st: 1000}, from: 500, to: 1500},
-		{name: "50", args: args{st: 50}, from: 25, to: 75},
+		{name: "1", args: args{st: 1}, from: 0.0, to: 1},
+		{name: "1000", args: args{st: 1000}, from: 0, to: 1000},
+		{name: "50", args: args{st: 50}, from: 0, to: 50},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
