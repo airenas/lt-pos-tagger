@@ -46,6 +46,13 @@ func Test_randNum(t *testing.T) {
 			if got := randNum(tt.args.st); got < tt.from || got > tt.to {
 				t.Errorf("randNum() = %v, want in [%v, %v]", got, tt.from, tt.to)
 			}
+			// test if it generates random > tt.to/2
+			for i := 0; i < 20; i++ {
+				if randNum(tt.args.st) > tt.to/2 {
+					return
+				}
+			}
+			t.Errorf("randNum(%d) was not >= %v, in 20 tries", tt.args.st, tt.to/2)
 		})
 	}
 }
