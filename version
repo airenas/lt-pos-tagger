@@ -1,3 +1,4 @@
 commit_count=$(shell git rev-list --count HEAD)
+rev_id=$(shell git rev-parse --short HEAD)
 
-tagger_version=0.6.$(commit_count)
+tagger_version=0.6.$(commit_count)-$(rev_id)

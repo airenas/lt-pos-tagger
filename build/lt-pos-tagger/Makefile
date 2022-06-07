@@ -1,7 +1,7 @@
 -include ../../version
 #####################################################################################
 service=airenas/tagger
-version=$(tagger_version)
+version?=$(tagger_version)
 ########### DOCKER ##################################################################
 tag=$(service):$(version)
 
@@ -10,5 +10,8 @@ dbuild:
 
 dpush: dbuild
 	docker push $(tag)
+
+dscan: dbuild
+	docker scan --accept-license $(tag)	
 #####################################################################################
 .PHONY: dbuild dpush

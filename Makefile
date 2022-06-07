@@ -37,6 +37,11 @@ docker/push:
 	cd build/lt-pos-tagger && $(MAKE) dpush
 .PHONY: docker/push
 #####################################################################################
+## build and scan lt-pos-tagger docker image
+docker/scan:
+	cd build/lt-pos-tagger && $(MAKE) dscan
+.PHONY: docker/scan
+#####################################################################################
 ## cleans all temporary data
 clean:
 	go clean
